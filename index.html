@@ -1003,11 +1003,11 @@
             <div class="month-gantt" aria-label="月内LTガント">
               <div class="week-scale">
                 <span id="lt-month-label">月内タスク</span>
-                <span>第1週<br>1-7日</span>
-                <span>第2週<br>8-14日</span>
-                <span>第3週<br>15-21日</span>
-                <span>第4週<br>22-28日</span>
-                <span>第5週<br>29-31日</span>
+                <span id="week-label-1">第1週<br>1-7日</span>
+                <span id="week-label-2">第2週<br>8-14日</span>
+                <span id="week-label-3">第3週<br>15-21日</span>
+                <span id="week-label-4">第4週<br>22-28日</span>
+                <span id="week-label-5">第5週<br>29-31日</span>
               </div>
               <div id="month-gantt-rows"></div>
             </div>
@@ -1622,23 +1622,55 @@
       return new Date(year, month, 0).getDate();
     }
 
+    function updateWeekLabels(lastDay) {
+      const ranges = [
+        [1, Math.min(7, lastDay)],
+        [8, Math.min(14, lastDay)],
+        [15, Math.min(21, lastDay)],
+        [22, Math.min(28, lastDay)],
+        [29, lastDay]
+      ];
+
+      ranges.forEach((range, index) => {
+        const label = document.getElementById(`week-label-${index + 1}`);
+        if (!label) return;
+        const [start, end] = range;
+        label.innerHTML = start > lastDay ? `第${index + 1}週<br>-` : `第${index + 1}週<br>${start}-${end}日`;
+      });
+    }
+
+    function addDays(date, amount) {
+      const next = new Date(date);
+      next.setDate(next.getDate() + amount);
+      return next;
+    }
+
+    function formatShortDate(date) {
+      const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+      return `${date.getMonth() + 1}/${date.getDate()}${weekdays[date.getDay()]}`;
+    }
+
     function makeSnsTasks(plan) {
       const tasks = [];
       const lastDay = daysInMonth(plan.year, plan.month);
       let week = 1;
 
       for (let day = 1; day <= lastDay; day++) {
-        const date = new Date(plan.year, plan.month - 1, day);
-        if (date.getDay() !== 2) continue;
+        const tuesday = new Date(plan.year, plan.month - 1, day);
+        if (tuesday.getDay() !== 2) continue;
 
-        const friday = Math.min(day + 3, lastDay);
+        const wednesday = addDays(tuesday, 1);
+        const thursday = addDays(tuesday, 2);
+        const fridayDate = addDays(tuesday, 3);
+        const visibleEnd = Math.min(day + 3, lastDay);
         tasks.push({
           task: `SNS投稿 ${week}週目`,
           owner: "社員1",
           start: day,
-          end: friday,
+          end: visibleEnd,
           kind: "media",
-          note: `${day}火 案出し / ${Math.min(day + 1, lastDay)}水 ラフ / ${Math.min(day + 2, lastDay)}木 提出 / ${friday}金 21時投稿`
+          displayRange: `${formatShortDate(tuesday)}-${formatShortDate(fridayDate)} / 4日`,
+          note: `${formatShortDate(tuesday)} 案出し / ${formatShortDate(wednesday)} ラフ / ${formatShortDate(thursday)} 提出 / ${formatShortDate(fridayDate)} 21時投稿`
         });
         week += 1;
       }
@@ -1685,6 +1717,7 @@
     function renderMonthGantt(monthKey) {
       const plan = monthPlans.find((item) => item.key === monthKey) || monthPlans[0];
       const tasks = tasksForMonth(plan);
+      const lastDay = daysInMonth(plan.year, plan.month);
       const rows = document.getElementById("month-gantt-rows");
       const caption = document.getElementById("lt-caption");
       const monthLabel = document.getElementById("lt-month-label");
@@ -1695,13 +1728,16 @@
 
       caption.textContent = `${plan.label}に進める、${plan.nextMenu}販売開始前タスクと${plan.followingMenu}開発開始タスク`;
       monthLabel.textContent = `${plan.label}の月内タスク`;
+      updateWeekLabels(lastDay);
       peak.textContent = plan.special ? "第1週：工法確定が最優先" : "第1週-第2週：工法と広報素材";
       longest.textContent = `${longestTask.task.replace(`${plan.nextMenu} `, "")} ${longestTask.end - longestTask.start + 1}日`;
       checkpoint.textContent = plan.special ? "8月工法確定、販売前共有" : "工法確定、販売前共有";
 
       rows.innerHTML = tasks.map((task) => {
-        let left = ((task.start - 1) / 31) * 100;
-        let width = ((task.end - task.start + 1) / 31) * 100;
+        const start = Math.max(1, Math.min(task.start, lastDay));
+        const end = Math.max(start, Math.min(task.end, lastDay));
+        let left = ((start - 1) / lastDay) * 100;
+        let width = ((end - start + 1) / lastDay) * 100;
         width = Math.max(width, 8);
         left = Math.min(left, 100 - width);
         return `
@@ -1712,7 +1748,7 @@
             </div>
             <div class="gantt-track">
               <div class="gantt-bar ${escapeHtml(task.kind)}" style="left: ${left}%; width: ${width}%;">
-                ${task.start}-${task.end}日 / ${task.end - task.start + 1}日
+                ${escapeHtml(task.displayRange || `${start}-${end}日 / ${end - start + 1}日`)}
                 <small>${escapeHtml(task.note)}</small>
               </div>
             </div>
