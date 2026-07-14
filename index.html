@@ -921,6 +921,20 @@
               <div class="cell"><span class="bar media">6月分撮影<br>販売告知</span></div>
               <div class="cell"><span class="bar media">7月分撮影<br>販売告知</span></div>
 
+              <div class="cell row-head">インフルエンサー試食会<small>毎月最終週に開催</small></div>
+              <div class="cell"><span class="bar media">7/30 試食会<br>告知/選考/招待</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>10月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>11月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>12月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>1月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>2月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>3月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>4月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>5月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>6月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>7月分へ接続</span></div>
+              <div class="cell"><span class="bar media">月末試食会<br>8月分へ接続</span></div>
+
               <div class="cell row-head">仕込み・買い出し<small>週次運用</small></div>
               <div class="cell"><span class="bar ops">もも運用<br>8月材料確認</span></div>
               <div class="cell"><span class="bar ops">通常運用<br>新メニュー初週厚め</span></div>
@@ -1497,6 +1511,14 @@
                   <td>毎週</td>
                 </tr>
                 <tr>
+                  <td>インフルエンサー試食会</td>
+                  <td>翌月メニューの見せ方、招待条件、候補者基準が決まる</td>
+                  <td>Instagram告知、選考、招待、試食会、投稿依頼、反応確認が完了</td>
+                  <td>店長</td>
+                  <td>3-4週</td>
+                  <td>毎月</td>
+                </tr>
+                <tr>
                   <td>仕込み</td>
                   <td>販売予測と在庫が確認済み</td>
                   <td>必要量の仕込みと記録更新が完了</td>
@@ -1678,6 +1700,69 @@
       return tasks;
     }
 
+    function lastWeekdayOfMonth(year, month, weekday) {
+      const date = new Date(year, month, 0);
+      while (date.getDay() !== weekday) {
+        date.setDate(date.getDate() - 1);
+      }
+      return date.getDate();
+    }
+
+    function makeInfluencerTasks(plan) {
+      const tastingDay = lastWeekdayOfMonth(plan.year, plan.month, 4);
+      const inviteStart = Math.max(1, tastingDay - 20);
+      const inviteEnd = Math.max(inviteStart, tastingDay - 15);
+      const selectionStart = Math.max(1, tastingDay - 14);
+      const selectionEnd = Math.max(selectionStart, tastingDay - 9);
+      const prepStart = Math.max(1, tastingDay - 8);
+      const prepEnd = Math.max(prepStart, tastingDay - 2);
+      const followEnd = Math.min(daysInMonth(plan.year, plan.month), tastingDay + 2);
+
+      return [
+        {
+          task: "インフルエンサー告知設計",
+          owner: "店長",
+          start: inviteStart,
+          end: inviteEnd,
+          kind: "media",
+          note: "Instagram告知文、募集条件、招待人数、候補者基準を決める"
+        },
+        {
+          task: "インフルエンサー選考/招待",
+          owner: "店長",
+          start: selectionStart,
+          end: selectionEnd,
+          kind: "media",
+          note: "候補者確認、DM送付、参加可否回収、当日の案内"
+        },
+        {
+          task: "試食会準備",
+          owner: "店長 + 社員2",
+          start: prepStart,
+          end: prepEnd,
+          kind: "ops",
+          note: "提供内容、席、撮影しやすい盛り付け、簡単な説明文を準備"
+        },
+        {
+          task: "インフルエンサー試食会",
+          owner: "店長",
+          start: tastingDay,
+          end: tastingDay,
+          kind: "event",
+          displayRange: `${plan.month}/${tastingDay}木 / 1日`,
+          note: `${plan.nextMenu}の先行試食。投稿依頼、タグ、投稿日目安を共有`
+        },
+        {
+          task: "試食会フォロー/投稿確認",
+          owner: "店長",
+          start: tastingDay,
+          end: followEnd,
+          kind: "media",
+          note: "お礼DM、投稿確認、反応メモ、翌月の改善点を残す"
+        }
+      ];
+    }
+
     function tasksForMonth(plan) {
       const currentLaunch = plan.key === "jul" ? "ももメニュー運用" : `${plan.label}メニュー販売開始`;
       const firstTask = plan.special
@@ -1687,6 +1772,7 @@
         { task: currentLaunch, owner: "全員", start: 1, end: 7, kind: "ops", note: "販売数、ロス、作業負荷を見る" },
         firstTask,
         ...makeSnsTasks(plan),
+        ...makeInfluencerTasks(plan),
         { task: `${plan.nextMenu} 仕込み表・買い出しリスト`, owner: "社員2", start: 5, end: 8, kind: "ops", note: "材料、数量、前日作業を分解" },
         { task: `${plan.nextMenu} 撮影・POP・投稿文`, owner: "社員1", start: 9, end: 12, kind: "media", note: "写真、店頭POP、告知文" },
         { task: `${plan.nextMenu} 告知運用`, owner: "社員1", start: 13, end: 20, kind: "media", note: "予告、販売告知、リマインド" },
@@ -1774,6 +1860,7 @@
       { title: "初週の買い出し", body: "販売予測から材料と備品を厚めに確認", owner: "社員2", lt: "半日", kind: "ops-note", x: 650, y: 42 },
       { title: "9月メニュー案", body: "販売45日前に方向性と価格帯を決める", owner: "店長", lt: "1日", kind: "menu-note", x: 170, y: 210 },
       { title: "SNS投稿企画", body: "火案出し、水ラフ、木提出、金21時投稿", owner: "社員1", lt: "毎週4日", kind: "media-note", x: 410, y: 214 },
+      { title: "インフルエンサー試食会", body: "Instagram告知、選考、招待、月末試食会、投稿依頼", owner: "店長", lt: "3-4週", kind: "media-note", x: 650, y: 214 },
       { title: "看板作成・設置", body: "7/21・7/23作成、7/28土台、7/30・8/4設置", owner: "店長", lt: "15日", kind: "event-note", x: 170, y: 384 },
       { title: "季節イベント企画", body: "本番の6-10週前に企画、試作、告知を開始", owner: "店長 + 社員1", lt: "6-10週", kind: "event-note", x: 410, y: 386 }
     ];
