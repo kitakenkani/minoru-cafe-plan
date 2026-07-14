@@ -1,0 +1,1593 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>minoru cafe 年間計画ボード</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f3ee;
+      --paper: #fffdf8;
+      --ink: #25231f;
+      --muted: #746d63;
+      --line: #d9d0c3;
+      --soft: #eee7dc;
+      --accent: #4c7f72;
+      --accent-2: #b45f43;
+      --accent-3: #96733c;
+      --accent-4: #6c6b9b;
+      --done: #5d8d5d;
+      --risk: #b45f43;
+      --shadow: 0 14px 40px rgba(53, 44, 31, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", Meiryo, system-ui, sans-serif;
+      line-height: 1.55;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: end;
+      max-width: 1440px;
+      margin: 0 auto 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2.2vw, 2.1rem);
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      max-width: 820px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .tab,
+    .small-btn {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+
+    .tab:hover,
+    .small-btn:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .tab[aria-selected="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fffdf8;
+    }
+
+    .workspace {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.is-active {
+      display: block;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: 0;
+    }
+
+    .hint,
+    .note {
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .roadmap {
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .roadmap-grid {
+      min-width: 1040px;
+      display: grid;
+      grid-template-columns: 160px repeat(12, minmax(76px, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    .cell {
+      min-height: 58px;
+      padding: 9px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      position: relative;
+    }
+
+    .cell:nth-child(13n) {
+      border-right: 0;
+    }
+
+    .month-head,
+    .row-head {
+      background: var(--soft);
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .row-head {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .row-head small {
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .bar {
+      display: block;
+      min-height: 32px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(76, 127, 114, .18);
+      border-left: 4px solid var(--accent);
+      font-size: .88rem;
+      line-height: 1.35;
+    }
+
+    .bar.menu {
+      background: rgba(180, 95, 67, .16);
+      border-left-color: var(--accent-2);
+    }
+
+    .bar.media {
+      background: rgba(108, 107, 155, .16);
+      border-left-color: var(--accent-4);
+    }
+
+    .bar.ops {
+      background: rgba(150, 115, 60, .16);
+      border-left-color: var(--accent-3);
+    }
+
+    .bar.done {
+      background: rgba(93, 141, 93, .18);
+      border-left-color: var(--done);
+    }
+
+    .bar.risk {
+      background: rgba(180, 95, 67, .22);
+      border-left-color: var(--risk);
+    }
+
+    .bar.event {
+      background: rgba(76, 127, 114, .16);
+      border-left-color: var(--accent);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: var(--accent);
+    }
+
+    .swatch.menu { background: var(--accent-2); }
+    .swatch.media { background: var(--accent-4); }
+    .swatch.ops { background: var(--accent-3); }
+    .swatch.event { background: var(--accent); }
+
+    .month-lt-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .month-lt-controls .field {
+      min-width: 180px;
+    }
+
+    .month-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .summary-card {
+      background: var(--soft);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .summary-card strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 1.05rem;
+    }
+
+    .month-gantt-wrap {
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .month-gantt {
+      min-width: 980px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    .week-scale {
+      display: grid;
+      grid-template-columns: 190px repeat(5, 1fr);
+      background: var(--soft);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .week-scale span {
+      padding: 9px 10px;
+      border-right: 1px solid var(--line);
+      color: var(--muted);
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    .week-scale span:last-child {
+      border-right: 0;
+    }
+
+    .gantt-row {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      min-height: 58px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .gantt-row:last-child {
+      border-bottom: 0;
+    }
+
+    .gantt-label {
+      padding: 10px;
+      border-right: 1px solid var(--line);
+      background: rgba(238, 231, 220, .55);
+    }
+
+    .gantt-label strong {
+      display: block;
+      font-size: .93rem;
+    }
+
+    .gantt-label span {
+      display: block;
+      color: var(--muted);
+      font-size: .82rem;
+      margin-top: 2px;
+    }
+
+    .gantt-track {
+      position: relative;
+      min-height: 58px;
+      background:
+        linear-gradient(90deg, transparent calc(20% - 1px), var(--line) 20%, transparent calc(20% + 1px)),
+        linear-gradient(90deg, transparent calc(40% - 1px), var(--line) 40%, transparent calc(40% + 1px)),
+        linear-gradient(90deg, transparent calc(60% - 1px), var(--line) 60%, transparent calc(60% + 1px)),
+        linear-gradient(90deg, transparent calc(80% - 1px), var(--line) 80%, transparent calc(80% + 1px));
+    }
+
+    .gantt-bar {
+      position: absolute;
+      top: 10px;
+      min-width: 72px;
+      min-height: 38px;
+      border-radius: 10px;
+      padding: 6px 8px;
+      color: var(--ink);
+      background: rgba(76, 127, 114, .18);
+      border-left: 5px solid var(--accent);
+      line-height: 1.25;
+      font-size: .84rem;
+      overflow: hidden;
+    }
+
+    .gantt-bar.menu {
+      background: rgba(180, 95, 67, .16);
+      border-left-color: var(--accent-2);
+    }
+
+    .gantt-bar.media {
+      background: rgba(108, 107, 155, .16);
+      border-left-color: var(--accent-4);
+    }
+
+    .gantt-bar.ops {
+      background: rgba(150, 115, 60, .16);
+      border-left-color: var(--accent-3);
+    }
+
+    .gantt-bar.risk {
+      background: rgba(180, 95, 67, .22);
+      border-left-color: var(--risk);
+    }
+
+    .gantt-bar.event {
+      background: rgba(76, 127, 114, .16);
+      border-left-color: var(--accent);
+    }
+
+    .gantt-bar small {
+      display: block;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .weekly-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .day-card {
+      min-height: 132px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255, 253, 248, .72);
+    }
+
+    .day-card strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .day-card span {
+      display: block;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .day-card.is-off {
+      background: var(--soft);
+    }
+
+    .season-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .season-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255, 253, 248, .72);
+    }
+
+    .season-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .season-card span {
+      display: block;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .season-card .status {
+      margin-top: 8px;
+    }
+
+    .cycle-layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) minmax(280px, .8fr);
+      gap: 18px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 92px 1fr 130px;
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 253, 248, .72);
+    }
+
+    .day {
+      font-weight: 700;
+      color: var(--accent-2);
+    }
+
+    .owner {
+      justify-self: end;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 9px;
+      color: var(--muted);
+      white-space: nowrap;
+      font-size: .88rem;
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 10px;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      border-radius: 10px;
+      background: var(--soft);
+    }
+
+    .check input {
+      margin-top: 5px;
+    }
+
+    .people-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .person {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255, 253, 248, .7);
+    }
+
+    .person h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .load {
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--soft);
+      margin: 8px 0 12px;
+    }
+
+    .load span {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .person ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .board-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 4px;
+      min-width: 150px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: .84rem;
+    }
+
+    .field input,
+    .field select {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    .canvas-wrap {
+      overflow: auto;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      background:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 28px 28px;
+      background-color: rgba(255, 253, 248, .72);
+    }
+
+    .canvas {
+      width: 1260px;
+      height: 620px;
+      position: relative;
+    }
+
+    .sticky {
+      position: absolute;
+      width: 210px;
+      min-height: 124px;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fbf1c7;
+      box-shadow: 0 10px 20px rgba(53, 44, 31, .18);
+      cursor: grab;
+      user-select: none;
+      border: 1px solid rgba(53, 44, 31, .12);
+    }
+
+    .sticky:active {
+      cursor: grabbing;
+    }
+
+    .sticky h3 {
+      margin: 0 0 6px;
+      font-size: .98rem;
+    }
+
+    .sticky p {
+      margin: 0 0 8px;
+      font-size: .9rem;
+    }
+
+    .sticky .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: #4b4439;
+      font-size: .78rem;
+    }
+
+    .tag {
+      border: 1px solid rgba(53, 44, 31, .18);
+      border-radius: 999px;
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, .45);
+    }
+
+    .sticky.menu-note { background: #f6d0bf; }
+    .sticky.media-note { background: #dcd9f2; }
+    .sticky.ops-note { background: #e8d7ac; }
+    .sticky.event-note { background: #cfe1d8; }
+
+    .lane-label {
+      position: absolute;
+      left: 18px;
+      width: 118px;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 4px 0;
+      border-bottom: 2px solid var(--line);
+    }
+
+    .board-line {
+      position: absolute;
+      left: 150px;
+      right: 20px;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      background: var(--soft);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: .84rem;
+      border: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    .status.done {
+      color: var(--done);
+    }
+
+    .status.risk {
+      color: var(--risk);
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        padding: 14px;
+      }
+
+      .topbar,
+      .cycle-layout,
+      .people-grid,
+      .month-summary,
+      .season-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs {
+        justify-content: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .owner {
+        justify-self: start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>minoru cafe 年間計画ボード</h1>
+        <p class="subtitle">7月始まり。毎月1日の新メニュー販売開始から逆算して、開発・工法確定・仕込み設計・広報告知・人員配置を見える化するためのたたき台です。</p>
+      </div>
+      <nav class="tabs" aria-label="表示切り替え">
+        <button class="tab" type="button" aria-selected="true" data-view-target="roadmap">年間</button>
+        <button class="tab" type="button" aria-selected="false" data-view-target="cycle">月次LT</button>
+        <button class="tab" type="button" aria-selected="false" data-view-target="people">配置</button>
+        <button class="tab" type="button" aria-selected="false" data-view-target="board">自由ボード</button>
+        <button class="tab" type="button" aria-selected="false" data-view-target="ledger">台帳</button>
+      </nav>
+    </header>
+
+    <section class="workspace">
+      <div id="roadmap" class="view is-active">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>7月から翌年6月までのロードマップ</h2>
+            <span class="hint">月をまたぐ仕事は横並びで管理</span>
+          </div>
+          <div class="roadmap" aria-label="年間ロードマップ">
+            <div class="roadmap-grid">
+              <div class="cell month-head">タスク</div>
+              <div class="cell month-head">7月</div>
+              <div class="cell month-head">8月</div>
+              <div class="cell month-head">9月</div>
+              <div class="cell month-head">10月</div>
+              <div class="cell month-head">11月</div>
+              <div class="cell month-head">12月</div>
+              <div class="cell month-head">1月</div>
+              <div class="cell month-head">2月</div>
+              <div class="cell month-head">3月</div>
+              <div class="cell month-head">4月</div>
+              <div class="cell month-head">5月</div>
+              <div class="cell month-head">6月</div>
+
+              <div class="cell row-head">新メニュー開発<small>毎月1日販売開始</small></div>
+              <div class="cell"><span class="bar done">もも販売中<br>8月メニュー開発済</span></div>
+              <div class="cell"><span class="bar menu">9月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">10月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">11月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">12月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">1月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">2月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">3月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">4月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">5月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">6月案決定<br>試作開始</span></div>
+              <div class="cell"><span class="bar menu">7月案決定<br>試作開始</span></div>
+
+              <div class="cell row-head">工法・提供手順<small>販売前月に確定</small></div>
+              <div class="cell"><span class="bar risk">8月分の工法確定<br>最優先</span></div>
+              <div class="cell"><span class="bar ops">9月分確定<br>仕込み量へ反映</span></div>
+              <div class="cell"><span class="bar ops">10月分確定</span></div>
+              <div class="cell"><span class="bar ops">11月分確定</span></div>
+              <div class="cell"><span class="bar ops">12月分確定</span></div>
+              <div class="cell"><span class="bar ops">1月分確定</span></div>
+              <div class="cell"><span class="bar ops">2月分確定</span></div>
+              <div class="cell"><span class="bar ops">3月分確定</span></div>
+              <div class="cell"><span class="bar ops">4月分確定</span></div>
+              <div class="cell"><span class="bar ops">5月分確定</span></div>
+              <div class="cell"><span class="bar ops">6月分確定</span></div>
+              <div class="cell"><span class="bar ops">7月分確定</span></div>
+
+              <div class="cell row-head">広報・告知<small>撮影、投稿、店頭POP</small></div>
+              <div class="cell"><span class="bar media">8月分撮影<br>予告投稿</span></div>
+              <div class="cell"><span class="bar media">9月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">10月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">11月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">12月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">1月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">2月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">3月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">4月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">5月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">6月分撮影<br>販売告知</span></div>
+              <div class="cell"><span class="bar media">7月分撮影<br>販売告知</span></div>
+
+              <div class="cell row-head">仕込み・買い出し<small>週次運用</small></div>
+              <div class="cell"><span class="bar ops">もも運用<br>8月材料確認</span></div>
+              <div class="cell"><span class="bar ops">通常運用<br>新メニュー初週厚め</span></div>
+              <div class="cell"><span class="bar ops">通常運用</span></div>
+              <div class="cell"><span class="bar ops">通常運用</span></div>
+              <div class="cell"><span class="bar ops">通常運用</span></div>
+              <div class="cell"><span class="bar ops">年末分増量</span></div>
+              <div class="cell"><span class="bar ops">年始在庫調整</span></div>
+              <div class="cell"><span class="bar ops">通常運用</span></div>
+              <div class="cell"><span class="bar ops">春需要確認</span></div>
+              <div class="cell"><span class="bar ops">通常運用</span></div>
+              <div class="cell"><span class="bar ops">GW需要対応</span></div>
+              <div class="cell"><span class="bar ops">夏前在庫整理</span></div>
+
+              <div class="cell row-head">看板作成<small>新規・更新</small></div>
+              <div class="cell"><span class="bar risk">7/21・7/23 本体作成<br>7/28 土台作成<br>7/30 設置1回目</span></div>
+              <div class="cell"><span class="bar">8/4 設置2回目<br>完了確認</span></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+
+              <div class="cell row-head">季節イベント<small>本番の6-10週前に企画開始</small></div>
+              <div class="cell"><span class="bar">夏休み/お盆<br>桃・涼菓訴求</span></div>
+              <div class="cell"><span class="bar">お盆本番<br>ハロウィン企画開始</span></div>
+              <div class="cell"><span class="bar">ハロウィン試作<br>撮影/告知準備</span></div>
+              <div class="cell"><span class="bar">ハロウィン本番<br>クリスマス企画開始</span></div>
+              <div class="cell"><span class="bar">クリスマス試作<br>予約導線準備</span></div>
+              <div class="cell"><span class="bar">クリスマス/年末<br>バレンタイン企画</span></div>
+              <div class="cell"><span class="bar">バレンタイン試作<br>春企画開始</span></div>
+              <div class="cell"><span class="bar">バレンタイン本番<br>桜告知準備</span></div>
+              <div class="cell"><span class="bar">桜/春休み本番<br>GW企画開始</span></div>
+              <div class="cell"><span class="bar">GW準備<br>母の日企画</span></div>
+              <div class="cell"><span class="bar">GW/母の日本番<br>梅雨企画</span></div>
+              <div class="cell"><span class="bar">梅雨/初夏本番<br>夏企画開始</span></div>
+            </div>
+          </div>
+          <div class="legend" aria-label="凡例">
+            <span><i class="swatch"></i>看板/イベント</span>
+            <span><i class="swatch menu"></i>メニュー開発</span>
+            <span><i class="swatch media"></i>広報告知</span>
+            <span><i class="swatch ops"></i>仕込み/運用</span>
+            <span><i class="swatch event"></i>季節イベント</span>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>月内LTガント</h2>
+            <span class="hint">選んだ月の中で、何週目から何日かかるかを見る</span>
+          </div>
+          <div class="month-lt-controls">
+            <div class="field">
+              <label for="lt-month">表示する月</label>
+              <select id="lt-month"></select>
+            </div>
+            <span class="note" id="lt-caption">翌月メニューの販売開始に向けた月内タスク</span>
+          </div>
+          <div class="month-summary" aria-label="月内LTサマリー">
+            <div class="summary-card">
+              <span>月内の主な山</span>
+              <strong id="lt-peak">第1週-第2週</strong>
+            </div>
+            <div class="summary-card">
+              <span>最長LT</span>
+              <strong id="lt-longest">広報告知 8日</strong>
+            </div>
+            <div class="summary-card">
+              <span>店長確認ポイント</span>
+              <strong id="lt-checkpoint">工法確定、販売前共有</strong>
+            </div>
+          </div>
+          <div class="month-gantt-wrap">
+            <div class="month-gantt" aria-label="月内LTガント">
+              <div class="week-scale">
+                <span id="lt-month-label">月内タスク</span>
+                <span>第1週<br>1-7日</span>
+                <span>第2週<br>8-14日</span>
+                <span>第3週<br>15-21日</span>
+                <span>第4週<br>22-28日</span>
+                <span>第5週<br>29-31日</span>
+              </div>
+              <div id="month-gantt-rows"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>季節イベントマップ</h2>
+            <span class="hint">本番月ではなく、企画開始月を先に見る</span>
+          </div>
+          <div class="season-grid" aria-label="季節イベントと企画考慮期間">
+            <div class="season-card">
+              <strong>夏休み/お盆</strong>
+              <span>本番: 7月-8月</span>
+              <span>企画: 6月-7月 / 4-6週</span>
+              <span class="status">桃、涼しいドリンク、帰省手土産</span>
+            </div>
+            <div class="season-card">
+              <strong>ハロウィン</strong>
+              <span>本番: 10月</span>
+              <span>企画: 8月下旬-9月 / 6-8週</span>
+              <span class="status">限定スイーツ、店頭装飾、写真映え</span>
+            </div>
+            <div class="season-card">
+              <strong>クリスマス</strong>
+              <span>本番: 12月</span>
+              <span>企画: 10月-11月 / 8-10週</span>
+              <span class="status">予約、ギフト、年末営業導線</span>
+            </div>
+            <div class="season-card">
+              <strong>バレンタイン</strong>
+              <span>本番: 2月</span>
+              <span>企画: 12月-1月 / 6-8週</span>
+              <span class="status">チョコ、ギフト、ペア訴求</span>
+            </div>
+            <div class="season-card">
+              <strong>桜/春休み</strong>
+              <span>本番: 3月-4月</span>
+              <span>企画: 1月-2月 / 6-8週</span>
+              <span class="status">桜、苺、卒業/入学、散歩需要</span>
+            </div>
+            <div class="season-card">
+              <strong>GW/母の日</strong>
+              <span>本番: 5月</span>
+              <span>企画: 3月-4月 / 6-8週</span>
+              <span class="status">混雑対策、ギフト、家族利用</span>
+            </div>
+            <div class="season-card">
+              <strong>梅雨/初夏</strong>
+              <span>本番: 6月</span>
+              <span>企画: 4月-5月 / 4-6週</span>
+              <span class="status">雨の日施策、冷たいメニュー</span>
+            </div>
+            <div class="season-card">
+              <strong>周年/店舗独自イベント</strong>
+              <span>本番: 任意</span>
+              <span>企画: 8-10週前</span>
+              <span class="status">常連向け、限定セット、看板/SNS連動</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>SNS週次サイクル</h2>
+            <span class="hint">社員1が毎週担当。新メニュー告知もこの流れに入れる</span>
+          </div>
+          <div class="weekly-grid" aria-label="SNS投稿企画の曜日別タスク">
+            <div class="day-card is-off">
+              <strong>月</strong>
+              <span>定休日</span>
+            </div>
+            <div class="day-card">
+              <strong>火</strong>
+              <span>案出し</span>
+              <span>新メニュー告知の切り口決め</span>
+            </div>
+            <div class="day-card">
+              <strong>水</strong>
+              <span>投稿ラフ</span>
+              <span>構成、写真候補、本文の下書き</span>
+            </div>
+            <div class="day-card">
+              <strong>木</strong>
+              <span>グループに提出</span>
+              <span>店長確認、必要なら修正</span>
+            </div>
+            <div class="day-card">
+              <strong>金</strong>
+              <span>編集、21時投稿</span>
+              <span>投稿後の反応をメモ</span>
+            </div>
+            <div class="day-card">
+              <strong>土</strong>
+              <span>反応確認</span>
+              <span>必要に応じてストーリーズ</span>
+            </div>
+            <div class="day-card">
+              <strong>日</strong>
+              <span>翌週ネタのメモ</span>
+              <span>営業中に素材候補を拾う</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="cycle" class="view">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>毎月1日販売開始の標準LT</h2>
+            <span class="hint">販売日から逆算する型</span>
+          </div>
+          <div class="cycle-layout">
+            <div class="timeline">
+              <div class="step">
+                <div class="day">D-45</div>
+                <div><strong>翌々月メニューの方向性決定</strong><span class="note">季節感、原価上限、提供価格、狙う客層を決める。</span></div>
+                <span class="owner">店長</span>
+              </div>
+              <div class="step">
+                <div class="day">D-35</div>
+                <div><strong>試作1回目</strong><span class="note">味、見た目、提供時間、食材調達の難しさを見る。</span></div>
+                <span class="owner">店長 + 社員2</span>
+              </div>
+              <div class="step">
+                <div class="day">D-28</div>
+                <div><strong>レシピ・原価・工法の仮決定</strong><span class="note">仕込み工程、保存、注文後のオペレーションを分解。</span></div>
+                <span class="owner">社員2</span>
+              </div>
+              <div class="step">
+                <div class="day">D-21</div>
+                <div><strong>最終試作・提供手順確定</strong><span class="note">誰が作っても同じ品質になるか確認。ここが8月分の現在地。</span></div>
+                <span class="owner">店長</span>
+              </div>
+              <div class="step">
+                <div class="day">D-14</div>
+                <div><strong>撮影・POP・投稿文作成</strong><span class="note">メニュー名、価格、写真、告知文を固める。</span></div>
+                <span class="owner">社員1</span>
+              </div>
+              <div class="step">
+                <div class="day">D-7</div>
+                <div><strong>仕込み量・買い出しリスト確定</strong><span class="note">初週の販売予測を置き、材料と備品を準備。</span></div>
+                <span class="owner">社員2</span>
+              </div>
+              <div class="step">
+                <div class="day">D-3</div>
+                <div><strong>スタッフ共有・告知強化</strong><span class="note">提供手順、説明文、よく聞かれる質問を共有。</span></div>
+                <span class="owner">店長 + 社員1</span>
+              </div>
+              <div class="step">
+                <div class="day">D day</div>
+                <div><strong>販売開始・当日確認</strong><span class="note">提供時間、注文数、ロス、反応を記録。翌週改善へ。</span></div>
+                <span class="owner">全員</span>
+              </div>
+            </div>
+            <aside class="checklist" aria-label="8月メニューの残タスク">
+              <div class="check">
+                <input type="checkbox" id="aug-1">
+                <label for="aug-1"><strong>8月メニューの工法を確定</strong><br><span class="note">仕込み、保存、注文後の手順、提供時間を1枚にする。</span></label>
+              </div>
+              <div class="check">
+                <input type="checkbox" id="aug-2">
+                <label for="aug-2"><strong>社員2が仕込み表へ落とす</strong><br><span class="note">必要材料、量、前日作業、当日作業を分ける。</span></label>
+              </div>
+              <div class="check">
+                <input type="checkbox" id="aug-3">
+                <label for="aug-3"><strong>社員1が広報素材を作る</strong><br><span class="note">写真、投稿文、店頭POP、Googleマップ更新文。</span></label>
+              </div>
+              <div class="check">
+                <input type="checkbox" id="aug-4">
+                <label for="aug-4"><strong>販売3日前に全員共有</strong><br><span class="note">作り方、説明、売り切れ時対応、初週の補充判断。</span></label>
+              </div>
+              <div class="check">
+                <input type="checkbox" id="aug-5">
+                <label for="aug-5"><strong>販売後7日で振り返り</strong><br><span class="note">売上、ロス、作業負荷、SNS反応を見て改善。</span></label>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </div>
+
+      <div id="people" class="view">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>人員配置と負荷の見方</h2>
+            <span class="hint">主担当を固定し、承認点だけ店長に寄せる</span>
+          </div>
+          <div class="people-grid">
+            <article class="person">
+              <h3>店長</h3>
+              <div class="load" aria-label="店長負荷 高"><span style="width: 78%"></span></div>
+              <ul>
+                <li>メニュー開発、味決め、価格承認</li>
+                <li>看板作成、設置判断、イベント判断</li>
+                <li>SNS提出物の最終確認</li>
+              </ul>
+            </article>
+            <article class="person">
+              <h3>社員1</h3>
+              <div class="load" aria-label="社員1負荷 中高"><span style="width: 72%"></span></div>
+              <ul>
+                <li>SNS投稿企画、撮影、編集、投稿</li>
+                <li>新メニュー告知、店頭POP、反応メモ</li>
+                <li>仕込みは担当外</li>
+              </ul>
+            </article>
+            <article class="person">
+              <h3>社員2</h3>
+              <div class="load" aria-label="社員2負荷 中高"><span style="width: 70%"></span></div>
+              <ul>
+                <li>仕込み、買い出し、在庫、ロス確認</li>
+                <li>火・木・土日フルタイム</li>
+                <li>新メニュー初週の現場運用</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>8月販売開始までの担当割り</h2>
+            <span class="hint">7月中に詰める内容</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>タスク</th>
+                  <th>主担当</th>
+                  <th>LT</th>
+                  <th>完了条件</th>
+                  <th>状態</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>8月新メニューの工法決定</td>
+                  <td>店長 + 社員2</td>
+                  <td>2-4日</td>
+                  <td>仕込み、保存、注文後手順、提供時間が決まる</td>
+                  <td><span class="status risk">未確定</span></td>
+                </tr>
+                <tr>
+                  <td>仕込み表・買い出しリスト化</td>
+                  <td>社員2</td>
+                  <td>1-2日</td>
+                  <td>材料、数量、発注先、前日作業が見える</td>
+                  <td><span class="status">次作業</span></td>
+                </tr>
+                <tr>
+                  <td>写真撮影・投稿素材作成</td>
+                  <td>社員1</td>
+                  <td>2-3日</td>
+                  <td>写真、投稿文、店頭POP、Googleマップ文が揃う</td>
+                  <td><span class="status">工法後</span></td>
+                </tr>
+                <tr>
+                  <td>スタッフ共有</td>
+                  <td>店長</td>
+                  <td>半日</td>
+                  <td>全員が作り方、説明、売り切れ対応を理解</td>
+                  <td><span class="status">販売前</span></td>
+                </tr>
+                <tr>
+                  <td>販売開始後の7日レビュー</td>
+                  <td>店長 + 社員1 + 社員2</td>
+                  <td>30分</td>
+                  <td>売上、ロス、作業負荷、反応を次月へ反映</td>
+                  <td><span class="status">予定</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div id="board" class="view">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>自由ボード</h2>
+            <span class="hint">カードはドラッグで移動できます</span>
+          </div>
+          <div class="board-toolbar">
+            <div class="field">
+              <label for="card-title">カード名</label>
+              <input id="card-title" type="text" value="9月メニュー案">
+            </div>
+            <div class="field">
+              <label for="card-owner">担当</label>
+              <select id="card-owner">
+                <option>店長</option>
+                <option>社員1</option>
+                <option>社員2</option>
+                <option>全員</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="card-kind">種類</label>
+              <select id="card-kind">
+                <option value="menu-note">メニュー</option>
+                <option value="media-note">広報</option>
+                <option value="ops-note">仕込み</option>
+                <option value="event-note">イベント</option>
+              </select>
+            </div>
+            <button class="small-btn" type="button" id="add-card">追加</button>
+            <button class="small-btn" type="button" id="reset-board">初期配置に戻す</button>
+          </div>
+          <div class="canvas-wrap">
+            <div class="canvas" id="canvas" aria-label="自由にカードを配置するボード">
+              <div class="lane-label" style="top: 40px;">今月中</div>
+              <div class="board-line" style="top: 76px;"></div>
+              <div class="lane-label" style="top: 210px;">来月分</div>
+              <div class="board-line" style="top: 246px;"></div>
+              <div class="lane-label" style="top: 380px;">年間</div>
+              <div class="board-line" style="top: 416px;"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="ledger" class="view">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>タスク台帳</h2>
+            <span class="hint">LTと完了条件を固定して迷いを減らす</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>タスク</th>
+                  <th>開始条件</th>
+                  <th>完了条件</th>
+                  <th>主担当</th>
+                  <th>LT</th>
+                  <th>頻度</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>新メニュー開発</td>
+                  <td>販売月の45日前にテーマと価格帯を決める</td>
+                  <td>レシピ、原価、工法、写真、告知素材が揃う</td>
+                  <td>店長</td>
+                  <td>45日</td>
+                  <td>毎月</td>
+                </tr>
+                <tr>
+                  <td>工法確定</td>
+                  <td>メニュー内容が決まっている</td>
+                  <td>仕込み、保存、注文後手順、提供時間が決まる</td>
+                  <td>店長 + 社員2</td>
+                  <td>2-7日</td>
+                  <td>毎月</td>
+                </tr>
+                <tr>
+                  <td>広報・告知</td>
+                  <td>メニュー名、価格、見た目が固まっている</td>
+                  <td>写真、投稿文、店頭POP、掲載先更新が完了</td>
+                  <td>社員1</td>
+                  <td>7-14日</td>
+                  <td>毎月</td>
+                </tr>
+                <tr>
+                  <td>SNS週次投稿</td>
+                  <td>週の投稿テーマが決まる</td>
+                  <td>火曜案出し、水曜ラフ、木曜提出、金曜21時投稿が完了</td>
+                  <td>社員1</td>
+                  <td>5日</td>
+                  <td>毎週</td>
+                </tr>
+                <tr>
+                  <td>仕込み</td>
+                  <td>販売予測と在庫が確認済み</td>
+                  <td>必要量の仕込みと記録更新が完了</td>
+                  <td>社員2</td>
+                  <td>半日-1日</td>
+                  <td>週次/日次</td>
+                </tr>
+                <tr>
+                  <td>買い出し</td>
+                  <td>仕込み表と在庫表が更新済み</td>
+                  <td>材料、備品、代替品の確認が完了</td>
+                  <td>社員2</td>
+                  <td>半日-1日</td>
+                  <td>週1-2回</td>
+                </tr>
+                <tr>
+                  <td>看板作成</td>
+                  <td>7月21日から制作に入れる状態</td>
+                  <td>7/21・7/23作成、7/28土台、7/30・8/4設置が完了</td>
+                  <td>店長</td>
+                  <td>15日</td>
+                  <td>必要時</td>
+                </tr>
+                <tr>
+                  <td>不定期イベント</td>
+                  <td>目的、日程候補、規模感が決まる</td>
+                  <td>告知、準備、実施、振り返りが完了</td>
+                  <td>店長 + 社員1</td>
+                  <td>4-8週</td>
+                  <td>不定期</td>
+                </tr>
+                <tr>
+                  <td>季節イベント企画</td>
+                  <td>本番月の6-10週前に対象イベントを確認</td>
+                  <td>企画、試作、撮影、告知、仕込み体制、振り返りが完了</td>
+                  <td>店長 + 社員1</td>
+                  <td>6-10週</td>
+                  <td>季節ごと</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const tabs = document.querySelectorAll(".tab");
+    const views = document.querySelectorAll(".view");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const target = tab.dataset.viewTarget;
+        tabs.forEach((item) => item.setAttribute("aria-selected", String(item === tab)));
+        views.forEach((view) => view.classList.toggle("is-active", view.id === target));
+      });
+    });
+
+    const monthPlans = [
+      { key: "jul", label: "7月", nextMenu: "8月メニュー", followingMenu: "9月メニュー", special: true },
+      { key: "aug", label: "8月", nextMenu: "9月メニュー", followingMenu: "10月メニュー" },
+      { key: "sep", label: "9月", nextMenu: "10月メニュー", followingMenu: "11月メニュー" },
+      { key: "oct", label: "10月", nextMenu: "11月メニュー", followingMenu: "12月メニュー" },
+      { key: "nov", label: "11月", nextMenu: "12月メニュー", followingMenu: "1月メニュー" },
+      { key: "dec", label: "12月", nextMenu: "1月メニュー", followingMenu: "2月メニュー" },
+      { key: "jan", label: "1月", nextMenu: "2月メニュー", followingMenu: "3月メニュー" },
+      { key: "feb", label: "2月", nextMenu: "3月メニュー", followingMenu: "4月メニュー" },
+      { key: "mar", label: "3月", nextMenu: "4月メニュー", followingMenu: "5月メニュー" },
+      { key: "apr", label: "4月", nextMenu: "5月メニュー", followingMenu: "6月メニュー" },
+      { key: "may", label: "5月", nextMenu: "6月メニュー", followingMenu: "7月メニュー" },
+      { key: "jun", label: "6月", nextMenu: "7月メニュー", followingMenu: "8月メニュー" }
+    ];
+
+    const seasonalTasksByMonth = {
+      jul: [
+        { task: "夏休み/お盆 直前調整", owner: "店長 + 社員1", start: 1, end: 10, kind: "event", note: "桃、涼しいドリンク、手土産訴求" }
+      ],
+      aug: [
+        { task: "ハロウィン 企画開始", owner: "店長 + 社員1", start: 20, end: 31, kind: "event", note: "限定メニュー、装飾、撮影イメージ" }
+      ],
+      sep: [
+        { task: "ハロウィン 試作/告知準備", owner: "店長 + 社員1", start: 1, end: 21, kind: "event", note: "試作、POP、撮影、投稿計画" }
+      ],
+      oct: [
+        { task: "ハロウィン 本番運用", owner: "全員", start: 1, end: 31, kind: "event", note: "限定販売、装飾、SNS強化" },
+        { task: "クリスマス 企画開始", owner: "店長 + 社員1", start: 15, end: 31, kind: "event", note: "予約導線、ギフト、年末営業" }
+      ],
+      nov: [
+        { task: "クリスマス 試作/予約準備", owner: "店長 + 社員1", start: 1, end: 24, kind: "event", note: "試作、写真、予約文、店頭POP" }
+      ],
+      dec: [
+        { task: "クリスマス/年末 本番運用", owner: "全員", start: 1, end: 25, kind: "event", note: "予約、限定販売、年末導線" },
+        { task: "バレンタイン 企画開始", owner: "店長 + 社員1", start: 15, end: 31, kind: "event", note: "チョコ、ギフト、ペア訴求" }
+      ],
+      jan: [
+        { task: "バレンタイン 試作/告知準備", owner: "店長 + 社員1", start: 5, end: 25, kind: "event", note: "写真、POP、投稿、ギフト導線" },
+        { task: "桜/春休み 企画開始", owner: "店長", start: 20, end: 31, kind: "event", note: "桜、苺、卒業/入学需要" }
+      ],
+      feb: [
+        { task: "バレンタイン 本番運用", owner: "全員", start: 1, end: 14, kind: "event", note: "限定販売、ギフト訴求" },
+        { task: "桜/春休み 試作/告知準備", owner: "店長 + 社員1", start: 10, end: 28, kind: "event", note: "写真、投稿、春POP" }
+      ],
+      mar: [
+        { task: "桜/春休み 本番運用", owner: "全員", start: 1, end: 31, kind: "event", note: "散歩需要、卒業/入学、春メニュー" },
+        { task: "GW/母の日 企画開始", owner: "店長 + 社員1", start: 15, end: 31, kind: "event", note: "混雑対策、ギフト、家族利用" }
+      ],
+      apr: [
+        { task: "GW/母の日 準備", owner: "店長 + 社員1 + 社員2", start: 1, end: 25, kind: "event", note: "仕込み量、投稿、POP、営業体制" },
+        { task: "梅雨/初夏 企画開始", owner: "店長", start: 20, end: 30, kind: "event", note: "雨の日施策、冷たいメニュー" }
+      ],
+      may: [
+        { task: "GW/母の日 本番運用", owner: "全員", start: 1, end: 12, kind: "event", note: "混雑対応、ギフト訴求" },
+        { task: "梅雨/初夏 告知準備", owner: "店長 + 社員1", start: 15, end: 31, kind: "event", note: "雨の日投稿、初夏メニュー撮影" }
+      ],
+      jun: [
+        { task: "梅雨/初夏 本番運用", owner: "全員", start: 1, end: 30, kind: "event", note: "雨の日施策、冷たいメニュー" },
+        { task: "夏休み/お盆 企画開始", owner: "店長 + 社員1", start: 15, end: 30, kind: "event", note: "桃、涼菓、帰省手土産" }
+      ]
+    };
+
+    function tasksForMonth(plan) {
+      const currentLaunch = plan.key === "jul" ? "ももメニュー運用" : `${plan.label}メニュー販売開始`;
+      const firstTask = plan.special
+        ? { task: `${plan.nextMenu} 工法確定`, owner: "店長 + 社員2", start: 1, end: 4, kind: "risk", note: "開発済み、工法のみ未確定" }
+        : { task: `${plan.nextMenu} 最終試作・工法確定`, owner: "店長 + 社員2", start: 1, end: 5, kind: "menu", note: "味、提供時間、保存を確定" };
+      const tasks = [
+        { task: currentLaunch, owner: "全員", start: 1, end: 7, kind: "ops", note: "販売数、ロス、作業負荷を見る" },
+        firstTask,
+        { task: "SNS投稿 1週目", owner: "社員1", start: 2, end: 5, kind: "media", note: "火案出し、水ラフ、木提出、金21時投稿" },
+        { task: "SNS投稿 2週目", owner: "社員1", start: 9, end: 12, kind: "media", note: "毎週同じ型で運用" },
+        { task: "SNS投稿 3週目", owner: "社員1", start: 16, end: 19, kind: "media", note: "新メニュー告知もここに含める" },
+        { task: "SNS投稿 4週目", owner: "社員1", start: 23, end: 26, kind: "media", note: "投稿後の反応をメモ" },
+        { task: `${plan.nextMenu} 仕込み表・買い出しリスト`, owner: "社員2", start: 5, end: 8, kind: "ops", note: "材料、数量、前日作業を分解" },
+        { task: `${plan.nextMenu} 撮影・POP・投稿文`, owner: "社員1", start: 9, end: 12, kind: "media", note: "写真、店頭POP、告知文" },
+        { task: `${plan.nextMenu} 告知運用`, owner: "社員1", start: 13, end: 20, kind: "media", note: "予告、販売告知、リマインド" },
+        { task: `${plan.followingMenu} 方向性決定`, owner: "店長", start: 15, end: 16, kind: "menu", note: "テーマ、価格帯、原価上限" },
+        { task: `${plan.followingMenu} 試作1回目`, owner: "店長", start: 17, end: 23, kind: "menu", note: "メニュー開発は店長が担当" },
+        { task: `${plan.nextMenu} 初週材料発注`, owner: "社員2", start: 21, end: 24, kind: "ops", note: "販売予測から初週分を厚めに" },
+        { task: `${plan.nextMenu} スタッフ共有`, owner: "店長 + 社員1", start: 25, end: 27, kind: "media", note: "説明、売り切れ対応、FAQ" },
+        { task: `${plan.nextMenu} 販売前最終確認`, owner: "全員", start: 28, end: 31, kind: "risk", note: "材料、POP、手順、投稿予約" }
+      ];
+
+      if (plan.key === "jul") {
+        tasks.push(
+          { task: "看板本体作成 1回目", owner: "店長", start: 21, end: 21, kind: "risk", note: "7/21 火" },
+          { task: "看板本体作成 2回目", owner: "店長", start: 23, end: 23, kind: "risk", note: "7/23 木" },
+          { task: "看板設置土台作成", owner: "店長", start: 28, end: 28, kind: "risk", note: "7/28 火" },
+          { task: "看板設置 1回目", owner: "店長", start: 30, end: 30, kind: "risk", note: "7/30 木" }
+        );
+      }
+
+      if (plan.key === "aug") {
+        tasks.push({ task: "看板設置 2回目", owner: "店長", start: 4, end: 4, kind: "risk", note: "8/4 火、設置完了確認" });
+      }
+
+      tasks.push(...(seasonalTasksByMonth[plan.key] || []));
+      return tasks;
+    }
+
+    function renderMonthGantt(monthKey) {
+      const plan = monthPlans.find((item) => item.key === monthKey) || monthPlans[0];
+      const tasks = tasksForMonth(plan);
+      const rows = document.getElementById("month-gantt-rows");
+      const caption = document.getElementById("lt-caption");
+      const monthLabel = document.getElementById("lt-month-label");
+      const peak = document.getElementById("lt-peak");
+      const longest = document.getElementById("lt-longest");
+      const checkpoint = document.getElementById("lt-checkpoint");
+      const longestTask = tasks.reduce((max, task) => task.end - task.start > max.end - max.start ? task : max, tasks[0]);
+
+      caption.textContent = `${plan.label}に進める、${plan.nextMenu}販売開始前タスクと${plan.followingMenu}開発開始タスク`;
+      monthLabel.textContent = `${plan.label}の月内タスク`;
+      peak.textContent = plan.special ? "第1週：工法確定が最優先" : "第1週-第2週：工法と広報素材";
+      longest.textContent = `${longestTask.task.replace(`${plan.nextMenu} `, "")} ${longestTask.end - longestTask.start + 1}日`;
+      checkpoint.textContent = plan.special ? "8月工法確定、販売前共有" : "工法確定、販売前共有";
+
+      rows.innerHTML = tasks.map((task) => {
+        let left = ((task.start - 1) / 31) * 100;
+        let width = ((task.end - task.start + 1) / 31) * 100;
+        width = Math.max(width, 8);
+        left = Math.min(left, 100 - width);
+        return `
+          <div class="gantt-row">
+            <div class="gantt-label">
+              <strong>${escapeHtml(task.task)}</strong>
+              <span>${escapeHtml(task.owner)}</span>
+            </div>
+            <div class="gantt-track">
+              <div class="gantt-bar ${escapeHtml(task.kind)}" style="left: ${left}%; width: ${width}%;">
+                ${task.start}-${task.end}日 / ${task.end - task.start + 1}日
+                <small>${escapeHtml(task.note)}</small>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    const monthSelect = document.getElementById("lt-month");
+    monthPlans.forEach((plan) => {
+      const option = document.createElement("option");
+      option.value = plan.key;
+      option.textContent = plan.label;
+      monthSelect.appendChild(option);
+    });
+    monthSelect.addEventListener("change", () => renderMonthGantt(monthSelect.value));
+    renderMonthGantt("jul");
+
+    const canvas = document.getElementById("canvas");
+    const initialCards = [
+      { title: "8月メニュー工法確定", body: "仕込み、保存、提供手順を1枚にする", owner: "店長 + 社員2", lt: "2-4日", kind: "menu-note", x: 170, y: 36 },
+      { title: "8月分の撮影・告知", body: "投稿文、写真、POP、Googleマップ更新", owner: "社員1", lt: "2-3日", kind: "media-note", x: 410, y: 42 },
+      { title: "初週の買い出し", body: "販売予測から材料と備品を厚めに確認", owner: "社員2", lt: "半日", kind: "ops-note", x: 650, y: 42 },
+      { title: "9月メニュー案", body: "販売45日前に方向性と価格帯を決める", owner: "店長", lt: "1日", kind: "menu-note", x: 170, y: 210 },
+      { title: "SNS投稿企画", body: "火案出し、水ラフ、木提出、金21時投稿", owner: "社員1", lt: "毎週5日", kind: "media-note", x: 410, y: 214 },
+      { title: "看板作成・設置", body: "7/21・7/23作成、7/28土台、7/30・8/4設置", owner: "店長", lt: "15日", kind: "event-note", x: 170, y: 384 },
+      { title: "季節イベント企画", body: "本番の6-10週前に企画、試作、告知を開始", owner: "店長 + 社員1", lt: "6-10週", kind: "event-note", x: 410, y: 386 }
+    ];
+
+    function makeCard(card) {
+      const el = document.createElement("article");
+      el.className = `sticky ${card.kind}`;
+      el.style.left = `${card.x}px`;
+      el.style.top = `${card.y}px`;
+      el.innerHTML = `
+        <h3>${escapeHtml(card.title)}</h3>
+        <p>${escapeHtml(card.body)}</p>
+        <div class="meta">
+          <span class="tag">${escapeHtml(card.owner)}</span>
+          <span class="tag">LT ${escapeHtml(card.lt)}</span>
+        </div>
+      `;
+      enableDrag(el);
+      canvas.appendChild(el);
+    }
+
+    function renderInitialCards() {
+      canvas.querySelectorAll(".sticky").forEach((card) => card.remove());
+      initialCards.forEach(makeCard);
+    }
+
+    function enableDrag(el) {
+      let startX = 0;
+      let startY = 0;
+      let originX = 0;
+      let originY = 0;
+      let dragging = false;
+
+      el.addEventListener("pointerdown", (event) => {
+        dragging = true;
+        el.setPointerCapture(event.pointerId);
+        startX = event.clientX;
+        startY = event.clientY;
+        originX = parseFloat(el.style.left);
+        originY = parseFloat(el.style.top);
+      });
+
+      el.addEventListener("pointermove", (event) => {
+        if (!dragging) return;
+        const nextX = Math.max(0, Math.min(canvas.clientWidth - el.offsetWidth, originX + event.clientX - startX));
+        const nextY = Math.max(0, Math.min(canvas.clientHeight - el.offsetHeight, originY + event.clientY - startY));
+        el.style.left = `${nextX}px`;
+        el.style.top = `${nextY}px`;
+      });
+
+      el.addEventListener("pointerup", () => {
+        dragging = false;
+      });
+
+      el.addEventListener("pointercancel", () => {
+        dragging = false;
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    document.getElementById("add-card").addEventListener("click", () => {
+      const titleInput = document.getElementById("card-title");
+      const ownerSelect = document.getElementById("card-owner");
+      const kindSelect = document.getElementById("card-kind");
+      const title = titleInput.value.trim() || "新しいタスク";
+      makeCard({
+        title,
+        body: "内容をあとで具体化",
+        owner: ownerSelect.value,
+        lt: "未設定",
+        kind: kindSelect.value,
+        x: 650,
+        y: 214
+      });
+      titleInput.value = "";
+      titleInput.focus();
+    });
+
+    document.getElementById("reset-board").addEventListener("click", renderInitialCards);
+
+    renderInitialCards();
+  </script>
+</body>
+</html>
