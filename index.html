@@ -1493,7 +1493,7 @@
                   <td>週の投稿テーマが決まる</td>
                   <td>火曜案出し、水曜ラフ、木曜提出、金曜21時投稿が完了</td>
                   <td>社員1</td>
-                  <td>5日</td>
+                  <td>4日</td>
                   <td>毎週</td>
                 </tr>
                 <tr>
@@ -1557,18 +1557,18 @@
     });
 
     const monthPlans = [
-      { key: "jul", label: "7月", nextMenu: "8月メニュー", followingMenu: "9月メニュー", special: true },
-      { key: "aug", label: "8月", nextMenu: "9月メニュー", followingMenu: "10月メニュー" },
-      { key: "sep", label: "9月", nextMenu: "10月メニュー", followingMenu: "11月メニュー" },
-      { key: "oct", label: "10月", nextMenu: "11月メニュー", followingMenu: "12月メニュー" },
-      { key: "nov", label: "11月", nextMenu: "12月メニュー", followingMenu: "1月メニュー" },
-      { key: "dec", label: "12月", nextMenu: "1月メニュー", followingMenu: "2月メニュー" },
-      { key: "jan", label: "1月", nextMenu: "2月メニュー", followingMenu: "3月メニュー" },
-      { key: "feb", label: "2月", nextMenu: "3月メニュー", followingMenu: "4月メニュー" },
-      { key: "mar", label: "3月", nextMenu: "4月メニュー", followingMenu: "5月メニュー" },
-      { key: "apr", label: "4月", nextMenu: "5月メニュー", followingMenu: "6月メニュー" },
-      { key: "may", label: "5月", nextMenu: "6月メニュー", followingMenu: "7月メニュー" },
-      { key: "jun", label: "6月", nextMenu: "7月メニュー", followingMenu: "8月メニュー" }
+      { key: "jul", label: "7月", year: 2026, month: 7, nextMenu: "8月メニュー", followingMenu: "9月メニュー", special: true },
+      { key: "aug", label: "8月", year: 2026, month: 8, nextMenu: "9月メニュー", followingMenu: "10月メニュー" },
+      { key: "sep", label: "9月", year: 2026, month: 9, nextMenu: "10月メニュー", followingMenu: "11月メニュー" },
+      { key: "oct", label: "10月", year: 2026, month: 10, nextMenu: "11月メニュー", followingMenu: "12月メニュー" },
+      { key: "nov", label: "11月", year: 2026, month: 11, nextMenu: "12月メニュー", followingMenu: "1月メニュー" },
+      { key: "dec", label: "12月", year: 2026, month: 12, nextMenu: "1月メニュー", followingMenu: "2月メニュー" },
+      { key: "jan", label: "1月", year: 2027, month: 1, nextMenu: "2月メニュー", followingMenu: "3月メニュー" },
+      { key: "feb", label: "2月", year: 2027, month: 2, nextMenu: "3月メニュー", followingMenu: "4月メニュー" },
+      { key: "mar", label: "3月", year: 2027, month: 3, nextMenu: "4月メニュー", followingMenu: "5月メニュー" },
+      { key: "apr", label: "4月", year: 2027, month: 4, nextMenu: "5月メニュー", followingMenu: "6月メニュー" },
+      { key: "may", label: "5月", year: 2027, month: 5, nextMenu: "6月メニュー", followingMenu: "7月メニュー" },
+      { key: "jun", label: "6月", year: 2027, month: 6, nextMenu: "7月メニュー", followingMenu: "8月メニュー" }
     ];
 
     const seasonalTasksByMonth = {
@@ -1618,6 +1618,34 @@
       ]
     };
 
+    function daysInMonth(year, month) {
+      return new Date(year, month, 0).getDate();
+    }
+
+    function makeSnsTasks(plan) {
+      const tasks = [];
+      const lastDay = daysInMonth(plan.year, plan.month);
+      let week = 1;
+
+      for (let day = 1; day <= lastDay; day++) {
+        const date = new Date(plan.year, plan.month - 1, day);
+        if (date.getDay() !== 2) continue;
+
+        const friday = Math.min(day + 3, lastDay);
+        tasks.push({
+          task: `SNS投稿 ${week}週目`,
+          owner: "社員1",
+          start: day,
+          end: friday,
+          kind: "media",
+          note: `${day}火 案出し / ${Math.min(day + 1, lastDay)}水 ラフ / ${Math.min(day + 2, lastDay)}木 提出 / ${friday}金 21時投稿`
+        });
+        week += 1;
+      }
+
+      return tasks;
+    }
+
     function tasksForMonth(plan) {
       const currentLaunch = plan.key === "jul" ? "ももメニュー運用" : `${plan.label}メニュー販売開始`;
       const firstTask = plan.special
@@ -1626,10 +1654,7 @@
       const tasks = [
         { task: currentLaunch, owner: "全員", start: 1, end: 7, kind: "ops", note: "販売数、ロス、作業負荷を見る" },
         firstTask,
-        { task: "SNS投稿 1週目", owner: "社員1", start: 2, end: 5, kind: "media", note: "火案出し、水ラフ、木提出、金21時投稿" },
-        { task: "SNS投稿 2週目", owner: "社員1", start: 9, end: 12, kind: "media", note: "毎週同じ型で運用" },
-        { task: "SNS投稿 3週目", owner: "社員1", start: 16, end: 19, kind: "media", note: "新メニュー告知もここに含める" },
-        { task: "SNS投稿 4週目", owner: "社員1", start: 23, end: 26, kind: "media", note: "投稿後の反応をメモ" },
+        ...makeSnsTasks(plan),
         { task: `${plan.nextMenu} 仕込み表・買い出しリスト`, owner: "社員2", start: 5, end: 8, kind: "ops", note: "材料、数量、前日作業を分解" },
         { task: `${plan.nextMenu} 撮影・POP・投稿文`, owner: "社員1", start: 9, end: 12, kind: "media", note: "写真、店頭POP、告知文" },
         { task: `${plan.nextMenu} 告知運用`, owner: "社員1", start: 13, end: 20, kind: "media", note: "予告、販売告知、リマインド" },
@@ -1712,7 +1737,7 @@
       { title: "8月分の撮影・告知", body: "投稿文、写真、POP、Googleマップ更新", owner: "社員1", lt: "2-3日", kind: "media-note", x: 410, y: 42 },
       { title: "初週の買い出し", body: "販売予測から材料と備品を厚めに確認", owner: "社員2", lt: "半日", kind: "ops-note", x: 650, y: 42 },
       { title: "9月メニュー案", body: "販売45日前に方向性と価格帯を決める", owner: "店長", lt: "1日", kind: "menu-note", x: 170, y: 210 },
-      { title: "SNS投稿企画", body: "火案出し、水ラフ、木提出、金21時投稿", owner: "社員1", lt: "毎週5日", kind: "media-note", x: 410, y: 214 },
+      { title: "SNS投稿企画", body: "火案出し、水ラフ、木提出、金21時投稿", owner: "社員1", lt: "毎週4日", kind: "media-note", x: 410, y: 214 },
       { title: "看板作成・設置", body: "7/21・7/23作成、7/28土台、7/30・8/4設置", owner: "店長", lt: "15日", kind: "event-note", x: 170, y: 384 },
       { title: "季節イベント企画", body: "本番の6-10週前に企画、試作、告知を開始", owner: "店長 + 社員1", lt: "6-10週", kind: "event-note", x: 410, y: 386 }
     ];
