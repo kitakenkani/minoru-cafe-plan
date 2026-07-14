@@ -463,6 +463,91 @@
       margin-top: 8px;
     }
 
+    .daily-layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(280px, .72fr);
+      gap: 18px;
+    }
+
+    .day-timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .time-block {
+      display: grid;
+      grid-template-columns: 118px 1fr 126px;
+      gap: 12px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255, 253, 248, .72);
+    }
+
+    .time-block.is-peak {
+      background: rgba(180, 95, 67, .12);
+      border-left: 5px solid var(--accent-2);
+    }
+
+    .time-block.is-light {
+      background: rgba(76, 127, 114, .12);
+      border-left: 5px solid var(--accent);
+    }
+
+    .time {
+      color: var(--accent-2);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .time-block strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .load-badge {
+      justify-self: end;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 4px 9px;
+      color: var(--muted);
+      white-space: nowrap;
+      font-size: .86rem;
+    }
+
+    .load-badge.high {
+      color: var(--risk);
+    }
+
+    .load-badge.low {
+      color: var(--done);
+    }
+
+    .routine-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .routine-item {
+      display: grid;
+      grid-template-columns: 86px 1fr;
+      gap: 10px;
+      border-radius: 12px;
+      padding: 12px;
+      background: var(--soft);
+    }
+
+    .routine-item strong {
+      display: block;
+    }
+
+    .weekday-rules {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
     .cycle-layout {
       display: grid;
       grid-template-columns: minmax(280px, 1fr) minmax(280px, .8fr);
@@ -721,6 +806,7 @@
 
       .topbar,
       .cycle-layout,
+      .daily-layout,
       .people-grid,
       .month-summary,
       .season-grid {
@@ -735,8 +821,20 @@
         grid-template-columns: 1fr;
       }
 
+      .time-block {
+        grid-template-columns: 1fr;
+      }
+
       .owner {
         justify-self: start;
+      }
+
+      .load-badge {
+        justify-self: start;
+      }
+
+      .weekly-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -752,6 +850,7 @@
         <button class="tab" type="button" aria-selected="true" data-view-target="roadmap">年間</button>
         <button class="tab" type="button" aria-selected="false" data-view-target="cycle">月次LT</button>
         <button class="tab" type="button" aria-selected="false" data-view-target="people">配置</button>
+        <button class="tab" type="button" aria-selected="false" data-view-target="daily">日次負荷</button>
         <button class="tab" type="button" aria-selected="false" data-view-target="board">自由ボード</button>
         <button class="tab" type="button" aria-selected="false" data-view-target="ledger">台帳</button>
       </nav>
@@ -1182,6 +1281,121 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </section>
+      </div>
+
+      <div id="daily" class="view">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>1日の定常業務と負荷</h2>
+            <span class="hint">ピーク中に重い作業を入れず、空き時間へ手持ちタスクを逃がす</span>
+          </div>
+          <div class="daily-layout">
+            <div class="day-timeline" aria-label="営業時間中の負荷タイムライン">
+              <div class="time-block">
+                <div class="time">9:30-10:00</div>
+                <div>
+                  <strong>開店準備</strong>
+                  <span class="note">店到着、掃除、レジ/釣銭、店頭確認、仕込み済み品の確認。</span>
+                </div>
+                <span class="load-badge">固定作業</span>
+              </div>
+              <div class="time-block">
+                <div class="time">10:00-11:30</div>
+                <div>
+                  <strong>開店 + 買い出し</strong>
+                  <span class="note">火・木は店長が買い出し。その他日は店長または社員2。店内は最低1名で通常営業。</span>
+                </div>
+                <span class="load-badge">中</span>
+              </div>
+              <div class="time-block">
+                <div class="time">11:30-12:00</div>
+                <div>
+                  <strong>買い出し戻り、昼ピーク前の補充</strong>
+                  <span class="note">材料収納、ショーケース/備品補充、12時以降に触れない作業を先に終える。</span>
+                </div>
+                <span class="load-badge">準備</span>
+              </div>
+              <div class="time-block is-peak">
+                <div class="time">12:00-16:00</div>
+                <div>
+                  <strong>来店ピーク</strong>
+                  <span class="note">接客、提供、皿下げ、補充を優先。仕込みやSNS作業は原則入れない。</span>
+                </div>
+                <span class="load-badge high">高</span>
+              </div>
+              <div class="time-block is-light">
+                <div class="time">16:00-17:00</div>
+                <div>
+                  <strong>手持ちタスク枠</strong>
+                  <span class="note">仕込み、在庫メモ、SNS素材整理、翌日の買い出しリストを進める。</span>
+                </div>
+                <span class="load-badge low">低-中</span>
+              </div>
+              <div class="time-block">
+                <div class="time">17:00-20:30</div>
+                <div>
+                  <strong>帰宅途中の来店 + 軽作業</strong>
+                  <span class="note">会社員の来店に対応しつつ、細切れでできる仕込み、発注確認、SNS確認を進める。</span>
+                </div>
+                <span class="load-badge">中</span>
+              </div>
+              <div class="time-block">
+                <div class="time">20:30-21:00</div>
+                <div>
+                  <strong>閉店前の片付け準備</strong>
+                  <span class="note">追加オーダーを見ながら、洗い物、廃棄判断、在庫の一次確認を始める。</span>
+                </div>
+                <span class="load-badge">締め準備</span>
+              </div>
+              <div class="time-block is-peak">
+                <div class="time">21:00-21:45</div>
+                <div>
+                  <strong>閉店作業</strong>
+                  <span class="note">皿洗い、売上計算、在庫確認、翌日の申し送り。ここに未完タスクを残さない。</span>
+                </div>
+                <span class="load-badge high">固定高</span>
+              </div>
+            </div>
+            <aside>
+              <div class="routine-list" aria-label="定常業務の分類">
+                <div class="routine-item">
+                  <strong>毎朝</strong>
+                  <div>開店準備、レジ確認、店頭/客席/厨房チェック、当日不足品の確認。</div>
+                </div>
+                <div class="routine-item">
+                  <strong>買い出し</strong>
+                  <div>火・木は店長、その他日は店長または社員2。11:30までに戻る前提で組む。</div>
+                </div>
+                <div class="routine-item">
+                  <strong>ピーク中</strong>
+                  <div>12:00-16:00は接客と提供を最優先。重い仕込み、企画、編集は入れない。</div>
+                </div>
+                <div class="routine-item">
+                  <strong>空き時間</strong>
+                  <div>16時台、17時以降の波が落ちた時間に仕込み、在庫、SNS、買い出しリストを進める。</div>
+                </div>
+                <div class="routine-item">
+                  <strong>閉店後</strong>
+                  <div>皿洗い、売上計算、在庫確認、翌日への申し送り。日中の未完了があるとここが詰まる。</div>
+                </div>
+              </div>
+              <div class="weekday-rules">
+                <div class="check">
+                  <input type="checkbox" id="daily-rule-1">
+                  <label for="daily-rule-1"><strong>火・木は店長の買い出しを固定</strong><br><span class="note">10:00-11:30は店長不在前提で現場を組む。</span></label>
+                </div>
+                <div class="check">
+                  <input type="checkbox" id="daily-rule-2">
+                  <label for="daily-rule-2"><strong>社員2の仕込み枠を16時以降に確保</strong><br><span class="note">火・木・土日はフルタイムなので、ピーク後に現場作業を寄せる。</span></label>
+                </div>
+                <div class="check">
+                  <input type="checkbox" id="daily-rule-3">
+                  <label for="daily-rule-3"><strong>SNSはピーク外で確認</strong><br><span class="note">社員1の投稿作業は、木曜提出と金曜21時投稿を締切に見る。</span></label>
+                </div>
+              </div>
+            </aside>
           </div>
         </section>
       </div>
